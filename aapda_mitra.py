@@ -27,7 +27,21 @@ st.markdown(
     <style>
 
     .stApp {
-        background: #f4f7fb;
+    background: #eaf4ff;
+    color: #17202a;
+}
+.stMarkdown,
+.stText,
+p,
+label,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #17202a;
+}
     }
 
     .main-title {
