@@ -1,121 +1,202 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 from sklearn.linear_model import LogisticRegression
+import plotly.graph_objects as go
+import plotly.express as px
 import random
 import time
 
-# --------------------------------------------------
-# PAGE CONFIGURATION
-# --------------------------------------------------
+# ============================================================
+# PAGE CONFIG
+# ============================================================
 
 st.set_page_config(
-    page_title="AI Aapda Mitra",
+    page_title="AI Aapda Mitra Command Center",
     page_icon="🌊",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# --------------------------------------------------
+# ============================================================
 # CUSTOM CSS
-# --------------------------------------------------
+# ============================================================
 
 st.markdown(
     """
     <style>
-    .main {
-        background-color: #f5f7fa;
+
+    .stApp {
+        background: #f4f7fb;
     }
 
-    .title {
+    .main-title {
         font-size: 42px;
         font-weight: 800;
-        color: #0b3d62;
-        text-align: center;
+        color: #073b66;
         margin-bottom: 0px;
     }
 
     .subtitle {
-        text-align: center;
-        color: #555;
-        font-size: 18px;
-        margin-bottom: 25px;
-    }
-
-    .risk-high {
-        background-color: #ffebee;
-        border: 3px solid #d32f2f;
-        border-radius: 15px;
-        padding: 25px;
-        text-align: center;
-    }
-
-    .risk-medium {
-        background-color: #fff8e1;
-        border: 3px solid #f9a825;
-        border-radius: 15px;
-        padding: 25px;
-        text-align: center;
-    }
-
-    .risk-low {
-        background-color: #e8f5e9;
-        border: 3px solid #2e7d32;
-        border-radius: 15px;
-        padding: 25px;
-        text-align: center;
-    }
-
-    .risk-number {
-        font-size: 48px;
-        font-weight: 800;
-    }
-
-    .risk-label {
-        font-size: 22px;
-        font-weight: 700;
-    }
-
-    .info-box {
-        background-color: white;
-        border-radius: 12px;
-        padding: 18px;
-        border: 1px solid #ddd;
+        color: #5b6573;
+        font-size: 17px;
         margin-bottom: 10px;
     }
 
-    .alert-box {
-        background-color: #fff3e0;
-        border-left: 6px solid #ef6c00;
-        padding: 18px;
-        border-radius: 8px;
+    .online {
+        background: #dff7e8;
+        color: #137333;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: 700;
+        display: inline-block;
     }
+
+    .risk-high {
+        background: linear-gradient(135deg, #7f0000, #d32f2f);
+        color: white;
+        border-radius: 18px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0px 6px 18px rgba(0,0,0,0.15);
+    }
+
+    .risk-medium {
+        background: linear-gradient(135deg, #e65100, #ff9800);
+        color: white;
+        border-radius: 18px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0px 6px 18px rgba(0,0,0,0.15);
+    }
+
+    .risk-low {
+        background: linear-gradient(135deg, #1b5e20, #43a047);
+        color: white;
+        border-radius: 18px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0px 6px 18px rgba(0,0,0,0.15);
+    }
+
+    .risk-percent {
+        font-size: 55px;
+        font-weight: 900;
+    }
+
+    .risk-title {
+        font-size: 24px;
+        font-weight: 800;
+    }
+
+    .panel {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        border: 1px solid #e2e7ee;
+        box-shadow: 0px 3px 12px rgba(0,0,0,0.05);
+    }
+
+    .alert-panel {
+        background: #fff3f3;
+        border-left: 6px solid #d32f2f;
+        border-radius: 10px;
+        padding: 18px;
+    }
+
+    .success-panel {
+        background: #edf8f0;
+        border-left: 6px solid #2e7d32;
+        border-radius: 10px;
+        padding: 18px;
+    }
+
+    .ai-panel {
+        background: #eef5ff;
+        border-left: 6px solid #1976d2;
+        border-radius: 10px;
+        padding: 18px;
+    }
+
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# --------------------------------------------------
+# ============================================================
 # HEADER
-# --------------------------------------------------
+# ============================================================
 
-st.markdown(
-    '<div class="title">🌊 AI Aapda Mitra</div>',
-    unsafe_allow_html=True
-)
+header_col1, header_col2 = st.columns([4, 1])
 
-st.markdown(
-    '<div class="subtitle">AI-Powered Village Flood Early Warning System</div>',
-    unsafe_allow_html=True
-)
+with header_col1:
+    st.markdown(
+        '<div class="main-title">🌊 AI AAPDA MITRA</div>',
+        unsafe_allow_html=True
+    )
 
-st.caption(
-    "Prototype Demo • AI + IoT + Weather Intelligence"
-)
+    st.markdown(
+        '<div class="subtitle">'
+        'AI-Powered Village Flood Early Warning & Response System'
+        '</div>',
+        unsafe_allow_html=True
+    )
+
+with header_col2:
+    st.markdown(
+        '<div class="online">🟢 SYSTEM ONLINE</div>',
+        unsafe_allow_html=True
+    )
 
 st.divider()
 
-# --------------------------------------------------
-# DEMO ML MODEL
-# --------------------------------------------------
+# ============================================================
+# SIDEBAR
+# ============================================================
+
+st.sidebar.title("🏘️ Command Center")
+
+village = st.sidebar.selectbox(
+    "Select Village",
+    [
+        "Phillaur",
+        "Ludhiana Rural",
+        "Jagraon",
+        "Samrala",
+        "Khanna"
+    ]
+)
+
+sarpanch_mobile = st.sidebar.text_input(
+    "Sarpanch Mobile",
+    "+91 98xxxxxx12"
+)
+
+st.sidebar.divider()
+
+st.sidebar.subheader("⚙️ Demo Controls")
+
+demo_mode = st.sidebar.checkbox(
+    "Enable Demo Mode",
+    value=True
+)
+
+force_high = st.sidebar.checkbox(
+    "🚨 Force HIGH Risk Demo",
+    value=False
+)
+
+st.sidebar.divider()
+
+st.sidebar.info(
+    "Prototype Mode\n\n"
+    "Rainfall, river and wind readings are simulated. "
+    "Real deployment would use verified weather and IoT data."
+)
+
+# ============================================================
+# ML MODEL
+# ============================================================
 
 @st.cache_resource
 def train_model():
@@ -139,55 +220,80 @@ def train_model():
 
 model = train_model()
 
-# --------------------------------------------------
-# SIDEBAR
-# --------------------------------------------------
+# ============================================================
+# ANALYZE BUTTON
+# ============================================================
 
-st.sidebar.header("🏘️ Village Control")
+st.subheader(f"📍 Monitoring Village: {village}")
 
-village = st.sidebar.selectbox(
-    "Select Village",
-    [
-        "Ludhiana Rural",
-        "Phillaur",
-        "Jagraon",
-        "Samrala",
-        "Khanna"
-    ]
-)
-
-sarpanch_mobile = st.sidebar.text_input(
-    "Sarpanch Mobile",
-    "+91 98xxxxxx12"
-)
-
-st.sidebar.divider()
-
-st.sidebar.info(
-    "Demo Mode\n\n"
-    "Sensor readings are simulated for this prototype."
-)
-
-# --------------------------------------------------
-# START PREDICTION
-# --------------------------------------------------
-
-st.subheader(f"📍 Monitoring: {village}")
-
-check_button = st.button(
-    "🔍 ANALYZE FLOOD RISK",
+analyze = st.button(
+    "🔍 ANALYZE CURRENT FLOOD RISK",
     type="primary",
     use_container_width=True
 )
 
-if check_button:
+# ============================================================
+# INITIAL SCREEN
+# ============================================================
 
-    with st.spinner("🧠 AI analyzing rainfall and river conditions..."):
-        time.sleep(1.5)
+if not analyze:
 
-        # Simulated sensor data
-        current_rain = random.randint(40, 220)
-        current_river = round(random.uniform(2.0, 9.0), 1)
+    st.info(
+        "👆 Select a village and click "
+        "**ANALYZE CURRENT FLOOD RISK** to start."
+    )
+
+    st.subheader("🛡️ AI Aapda Mitra Capabilities")
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+        st.markdown("### 🌧️")
+        st.write("Rainfall Monitoring")
+
+    with c2:
+        st.markdown("### 🌊")
+        st.write("River Level Analysis")
+
+    with c3:
+        st.markdown("### 🤖")
+        st.write("AI Flood Prediction")
+
+    with c4:
+        st.markdown("### 📞")
+        st.write("Emergency Response")
+
+    st.divider()
+
+    st.markdown(
+        """
+        ### 🎯 Mission
+
+        **Predict floods early. Alert villages faster. Save lives.**
+
+        The prototype combines rainfall data, river-level information
+        and machine-learning-based risk prediction into one village
+        disaster-management dashboard.
+        """
+    )
+
+# ============================================================
+# ANALYSIS
+# ============================================================
+
+if analyze:
+
+    with st.spinner("🧠 AI analyzing environmental conditions..."):
+        time.sleep(1)
+
+        if force_high:
+            current_rain = random.randint(160, 220)
+            current_river = round(random.uniform(7.0, 9.0), 1)
+            wind_speed = random.randint(55, 85)
+        else:
+            current_rain = random.randint(40, 220)
+            current_river = round(random.uniform(2.0, 9.0), 1)
+            wind_speed = random.randint(15, 75)
 
         prediction = model.predict(
             [[current_rain, current_river]]
@@ -197,29 +303,61 @@ if check_button:
             [[current_rain, current_river]]
         )[0][1]
 
-    # --------------------------------------------------
-    # SENSOR CARDS
-    # --------------------------------------------------
+        if force_high:
+            probability = max(probability, 0.87)
 
-    st.subheader("📡 Live Environmental Readings")
+    # ========================================================
+    # RISK CLASSIFICATION
+    # ========================================================
 
-    col1, col2, col3 = st.columns(3)
+    if probability >= 0.70:
+        risk_level = "HIGH"
+        risk_class = "risk-high"
+        risk_emoji = "🚨"
+        risk_color = "#d32f2f"
 
-    with col1:
+    elif probability >= 0.40:
+        risk_level = "MEDIUM"
+        risk_class = "risk-medium"
+        risk_emoji = "⚠️"
+        risk_color = "#f57c00"
+
+    else:
+        risk_level = "LOW"
+        risk_class = "risk-low"
+        risk_emoji = "✅"
+        risk_color = "#2e7d32"
+
+    # ========================================================
+    # TOP METRICS
+    # ========================================================
+
+    st.subheader("📡 Live Environmental Intelligence")
+
+    m1, m2, m3, m4 = st.columns(4)
+
+    with m1:
         st.metric(
             "🌧️ Rainfall",
             f"{current_rain} mm",
-            "Current Reading"
+            "Current"
         )
 
-    with col2:
+    with m2:
         st.metric(
             "🌊 River Level",
             f"{current_river} m",
-            "Current Reading"
+            "Current"
         )
 
-    with col3:
+    with m3:
+        st.metric(
+            "💨 Wind Speed",
+            f"{wind_speed} km/h",
+            "Current"
+        )
+
+    with m4:
         st.metric(
             "🤖 AI Confidence",
             f"{int(probability * 100)}%",
@@ -228,109 +366,318 @@ if check_button:
 
     st.divider()
 
-    # --------------------------------------------------
-    # RISK CLASSIFICATION
-    # --------------------------------------------------
+    # ========================================================
+    # RISK + GAUGE
+    # ========================================================
 
-    if probability >= 0.70:
+    left, right = st.columns([1, 1.5])
 
-        risk_level = "HIGH"
-        risk_class = "risk-high"
-        risk_emoji = "🚨"
+    with left:
 
-    elif probability >= 0.40:
+        st.markdown(
+            f"""
+            <div class="{risk_class}">
+                <div class="risk-percent">
+                    {risk_emoji} {int(probability * 100)}%
+                </div>
+                <div class="risk-title">
+                    FLOOD RISK: {risk_level}
+                </div>
+                <br>
+                Village: <b>{village}</b>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-        risk_level = "MEDIUM"
-        risk_class = "risk-medium"
-        risk_emoji = "⚠️"
+    with right:
 
-    else:
+        gauge = go.Figure(
+            go.Indicator(
+                mode="gauge+number",
+                value=probability * 100,
+                title={"text": "AI Flood Risk Score"},
+                gauge={
+                    "axis": {
+                        "range": [0, 100]
+                    },
+                    "bar": {
+                        "color": risk_color
+                    },
+                    "steps": [
+                        {
+                            "range": [0, 40],
+                            "color": "#c8e6c9"
+                        },
+                        {
+                            "range": [40, 70],
+                            "color": "#ffe0b2"
+                        },
+                        {
+                            "range": [70, 100],
+                            "color": "#ffcdd2"
+                        }
+                    ]
+                }
+            )
+        )
 
-        risk_level = "LOW"
-        risk_class = "risk-low"
-        risk_emoji = "✅"
+        gauge.update_layout(
+            height=260,
+            margin=dict(l=20, r=20, t=50, b=10)
+        )
 
-    # --------------------------------------------------
-    # BIG RISK DISPLAY
-    # --------------------------------------------------
+        st.plotly_chart(
+            gauge,
+            use_container_width=True
+        )
+
+    st.divider()
+
+    # ========================================================
+    # 6-HOUR FORECAST
+    # ========================================================
+
+    st.subheader("📈 6-Hour Flood Risk Forecast")
+
+    hours = [
+        "Now",
+        "+1h",
+        "+2h",
+        "+3h",
+        "+4h",
+        "+5h",
+        "+6h"
+    ]
+
+    base_risk = probability * 100
+
+    forecast = [
+        max(5, min(99, base_risk + random.randint(-5, 3)))
+        for _ in hours
+    ]
+
+    forecast[0] = base_risk
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=hours,
+            y=forecast,
+            mode="lines+markers",
+            line=dict(
+                color=risk_color,
+                width=5
+            ),
+            marker=dict(
+                size=10
+            ),
+            fill="tozeroy",
+            fillcolor="rgba(211,47,47,0.10)"
+        )
+    )
+
+    fig.add_hline(
+        y=70,
+        line_dash="dash",
+        line_color="#d32f2f",
+        annotation_text="High Risk Threshold"
+    )
+
+    fig.update_layout(
+        yaxis=dict(
+            title="Flood Risk (%)",
+            range=[0, 100]
+        ),
+        xaxis=dict(
+            title="Time"
+        ),
+        height=360,
+        margin=dict(l=20, r=20, t=20, b=20),
+        plot_bgcolor="white"
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+    # ========================================================
+    # MAP / VILLAGE STATUS
+    # ========================================================
+
+    st.subheader("🗺️ Village Risk Overview")
+
+    village_data = pd.DataFrame(
+        {
+            "Village": [
+                "Phillaur",
+                "Ludhiana Rural",
+                "Jagraon",
+                "Samrala",
+                "Khanna"
+            ],
+            "Risk": [
+                random.randint(20, 95),
+                random.randint(20, 80),
+                random.randint(20, 90),
+                random.randint(10, 75),
+                random.randint(10, 65)
+            ]
+        }
+    )
+
+    selected_index = village_data[
+        village_data["Village"] == village
+    ].index[0]
+
+    village_data.loc[selected_index, "Risk"] = int(
+        probability * 100
+    )
+
+    village_data["Status"] = village_data["Risk"].apply(
+        lambda x:
+        "HIGH" if x >= 70
+        else "MEDIUM" if x >= 40
+        else "LOW"
+    )
+
+    fig_map = px.scatter(
+        village_data,
+        x="Village",
+        y="Risk",
+        size="Risk",
+        color="Status",
+        color_discrete_map={
+            "HIGH": "#d32f2f",
+            "MEDIUM": "#f57c00",
+            "LOW": "#2e7d32"
+        },
+        hover_data=["Risk"],
+        title="Demo Village Risk Map"
+    )
+
+    fig_map.update_layout(
+        yaxis_title="Flood Risk (%)",
+        xaxis_title="Village",
+        yaxis=dict(range=[0, 100]),
+        height=380,
+        plot_bgcolor="white"
+    )
+
+    st.plotly_chart(
+        fig_map,
+        use_container_width=True
+    )
+
+    # ========================================================
+    # AI EXPLANATION
+    # ========================================================
+
+    st.subheader("🧠 AI Decision Explanation")
+
+    reason_rain = min(
+        100,
+        int((current_rain / 220) * 100)
+    )
+
+    reason_river = min(
+        100,
+        int((current_river / 9) * 100)
+    )
+
+    reason_history = random.randint(60, 90)
+
+    e1, e2, e3 = st.columns(3)
+
+    with e1:
+        st.metric(
+            "🌧️ Rainfall Factor",
+            f"{reason_rain}%"
+        )
+
+    with e2:
+        st.metric(
+            "🌊 River Factor",
+            f"{reason_river}%"
+        )
+
+    with e3:
+        st.metric(
+            "📚 Historical Pattern",
+            f"{reason_history}%"
+        )
 
     st.markdown(
         f"""
-        <div class="{risk_class}">
-            <div class="risk-number">
-                {risk_emoji} {int(probability * 100)}%
-            </div>
-            <div class="risk-label">
-                FLOOD RISK: {risk_level}
-            </div>
-            <p>
-                Village: <b>{village}</b>
-            </p>
+        <div class="ai-panel">
+        <b>🤖 AI Assessment</b><br><br>
+        The model is evaluating rainfall intensity and river level
+        together to estimate the probability of flooding.
+        <br><br>
+        <b>Current prediction:</b> {risk_level} flood risk
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    st.write("")
-
-    # --------------------------------------------------
-    # AI EXPLANATION
-    # --------------------------------------------------
-
-    st.subheader("🧠 Why is AI giving this warning?")
-
-    reason1 = (
-        "High rainfall detected"
-        if current_rain >= 120
-        else "Rainfall currently within moderate range"
-    )
-
-    reason2 = (
-        "River level is elevated"
-        if current_river >= 6
-        else "River level currently within monitored range"
-    )
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.markdown(
-            f"""
-            <div class="info-box">
-            🌧️ <b>Rainfall Analysis</b><br>
-            {reason1}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    with col2:
-        st.markdown(
-            f"""
-            <div class="info-box">
-            🌊 <b>River Analysis</b><br>
-            {reason2}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    # --------------------------------------------------
+    # ========================================================
     # EMERGENCY RESPONSE
-    # --------------------------------------------------
+    # ========================================================
 
     st.divider()
 
-    st.subheader("🚨 Emergency Response")
+    st.subheader("🚨 Emergency Response Center")
+
+    e1, e2, e3 = st.columns(3)
+
+    with e1:
+
+        st.markdown(
+            """
+            <div class="panel">
+            <h3>📞 Sarpanch</h3>
+            <b>STATUS:</b> READY
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with e2:
+
+        st.markdown(
+            """
+            <div class="panel">
+            <h3>📢 Village Broadcast</h3>
+            <b>STATUS:</b> READY
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with e3:
+
+        st.markdown(
+            """
+            <div class="panel">
+            <h3>🚑 Rescue Team</h3>
+            <b>STATUS:</b> ON STANDBY
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    st.write("")
 
     if risk_level == "HIGH":
 
         st.markdown(
             """
-            <div class="alert-box">
-            <b>HIGH RISK DETECTED</b><br>
-            Immediate local authorities and village leadership
-            should be notified in a real deployment.
+            <div class="alert-panel">
+            <b>🚨 HIGH RISK ALERT</b><br>
+            Immediate emergency communication is recommended
+            in a real deployment.
             </div>
             """,
             unsafe_allow_html=True
@@ -338,85 +685,123 @@ if check_button:
 
         st.write("")
 
-        if st.button(
-            "📞 SEND EMERGENCY ALERT",
+        alert_button = st.button(
+            "🚨 SEND EMERGENCY ALERT",
             type="primary",
             use_container_width=True
-        ):
+        )
+
+        if alert_button:
 
             st.success(
-                f"✅ Demo alert generated for {village}"
+                f"✅ Emergency alert generated for {village}"
             )
 
             st.info(
-                f"📱 Target: {sarpanch_mobile}"
+                f"📱 Sarpanch: {sarpanch_mobile}"
             )
 
             st.warning(
-                f"Message: AI Alert — {village} me flood risk "
-                "detect hua hai. Kripya surakshit/uchai wali "
-                "jagah par jaane ki taiyari karein."
+                f"🚨 ALERT MESSAGE\n\n"
+                f"AI Aapda Mitra Warning: {village} me "
+                f"flood risk HIGH hai. Kripya surakshit "
+                f"uchai wali jagah par jaane ki taiyari karein."
             )
 
             st.caption(
-                "Demo only: No real SMS or IVR call has been sent."
+                "DEMO ONLY — No real SMS, IVR or emergency "
+                "communication has been sent."
             )
 
     elif risk_level == "MEDIUM":
 
         st.warning(
-            "⚠️ Medium risk detected. Continue monitoring "
-            "rainfall and river level."
+            "⚠️ Medium risk. Continue monitoring conditions."
         )
 
     else:
 
-        st.success(
-            "✅ Current conditions show low flood risk."
+        st.markdown(
+            """
+            <div class="success-panel">
+            <b>🟢 CURRENT STATUS: STABLE</b><br>
+            No immediate high flood risk detected.
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
-else:
+    # ========================================================
+    # ALERT PREVIEW
+    # ========================================================
 
-    # --------------------------------------------------
-    # INITIAL DASHBOARD
-    # --------------------------------------------------
+    st.divider()
 
-    st.info(
-        "👆 Click **ANALYZE FLOOD RISK** to start the AI analysis."
-    )
+    st.subheader("📱 Village Alert Preview")
 
-    st.subheader("🛡️ System Capabilities")
+    alert_col1, alert_col2 = st.columns(2)
 
-    col1, col2, col3, col4 = st.columns(4)
+    with alert_col1:
 
-    with col1:
-        st.markdown("### 🌧️")
-        st.write("Rainfall Monitoring")
+        st.markdown(
+            f"""
+            <div class="panel">
 
-    with col2:
-        st.markdown("### 🌊")
-        st.write("River Level Analysis")
+            <h3>🚨 AI Aapda Mitra Alert</h3>
 
-    with col3:
-        st.markdown("### 🤖")
-        st.write("AI Risk Prediction")
+            <b>Village:</b> {village}<br><br>
 
-    with col4:
-        st.markdown("### 📞")
-        st.write("Emergency Alert")
+            <b>Flood Risk:</b> {risk_level}<br>
 
-# --------------------------------------------------
+            <b>Probability:</b> {int(probability * 100)}%<br>
+
+            <b>River Level:</b> {current_river} m<br>
+
+            <b>Rainfall:</b> {current_rain} mm<br><br>
+
+            ⚠️ Please remain alert and follow
+            local emergency instructions.
+
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with alert_col2:
+
+        st.markdown(
+            """
+            <div class="panel">
+
+            <h3>🛡️ Response Plan</h3>
+
+            1️⃣ Alert village leadership<br><br>
+
+            2️⃣ Notify residents<br><br>
+
+            3️⃣ Prepare evacuation routes<br><br>
+
+            4️⃣ Keep rescue teams ready<br><br>
+
+            5️⃣ Monitor river and rainfall continuously
+
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+# ============================================================
 # FOOTER
-# --------------------------------------------------
+# ============================================================
 
 st.divider()
 
 st.caption(
-    "AI Aapda Mitra | Prototype for Village Flood Early Warning"
+    "🌊 AI Aapda Mitra | Prototype Command Center"
 )
 
 st.caption(
-    "Current demo uses simulated sensor data. "
-    "Future deployment can integrate weather APIs, IoT river sensors, "
-    "maps and verified emergency communication systems."
+    "Demo data is simulated. Real deployment requires "
+    "validated weather data, calibrated sensors and "
+    "authorized emergency communication systems."
 )
