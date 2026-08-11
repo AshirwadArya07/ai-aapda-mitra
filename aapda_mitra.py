@@ -1,10 +1,8 @@
 import streamlit as st
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
-import time
 import random
 
-# Page setup
 st.set_page_config(
     page_title="AI Aapda Mitra",
     page_icon="🌊",
@@ -15,10 +13,8 @@ st.title("🌊 AI Aapda Mitra")
 st.subheader("Gaon ke liye Flood Prediction System")
 st.caption("Powered by AI | Viksit Bharat")
 
-# 1. DEMO DATA TRAINING
 @st.cache_data
 def train_model():
-    # Dummy data for demonstration
     data = {
         "rainfall": [20, 50, 80, 120, 30, 150, 200, 60, 180, 90],
         "river_level": [2.1, 3.0, 4.5, 6.0, 2.5, 7.2, 8.5, 3.5, 7.8, 4.8],
@@ -38,19 +34,12 @@ def train_model():
 
 model = train_model()
 
-# 2. USER INPUT
 col1, col2 = st.columns(2)
 
 with col1:
     village = st.selectbox(
         "Gaon Chuno",
-        [
-            "Ludhiana Rural",
-            "Phillaur",
-            "Jagraon",
-            "Samrala",
-            "Khanna"
-        ]
+        ["Ludhiana Rural", "Phillaur", "Jagraon", "Samrala", "Khanna"]
     )
 
 with col2:
@@ -61,26 +50,19 @@ with col2:
 
 st.divider()
 
-# 3. PREDICTION BUTTON
 if st.button("🔍 Abhi Check Karo - Predict Flood Risk"):
 
-    with st.spinner("AI Satellite + River Data check kar raha hai..."):
-        time.sleep(2)
+    current_rain = random.randint(40, 220)
+    current_river = round(random.uniform(2.0, 9.0), 1)
 
-        # Demo data
-        # Real system me yahan IMD + IoT sensor data aayega
-        current_rain = random.randint(40, 220)
-        current_river = round(random.uniform(2.0, 9.0), 1)
+    prediction = model.predict(
+        [[current_rain, current_river]]
+    )[0]
 
-        prediction = model.predict(
-            [[current_rain, current_river]]
-        )[0]
+    probability = model.predict_proba(
+        [[current_rain, current_river]]
+    )[0][1]
 
-        probability = model.predict_proba(
-            [[current_rain, current_river]]
-        )[0][1]
-
-    # 4. DISPLAY CURRENT DATA
     col1, col2 = st.columns(2)
 
     with col1:
@@ -97,7 +79,6 @@ if st.button("🔍 Abhi Check Karo - Predict Flood Risk"):
 
     st.divider()
 
-    # 5. AI PREDICTION + ALERT
     if prediction == 1 and probability > 0.7:
 
         st.error(
@@ -110,20 +91,18 @@ if st.button("🔍 Abhi Check Karo - Predict Flood Risk"):
         )
 
         st.info(
-            "⚠️ Kripya uchai wali jagah par jaane ke liye "
-            "taiyar rahein."
+            "Kripya uchai wali jagah par jaane ke liye taiyar rahein."
         )
 
         if st.button("📞 Auto Alert Bhejo Sarpanch ko"):
-
             st.success(
                 f"✅ Demo IVR Call + SMS bhej diya gaya: "
                 f"{sarpanch_mobile}"
             )
 
             st.info(
-                f"Message: 'AI Alert: {village} me flood risk. "
-                "Kripya uchai wali jagah par jayen.'"
+                f"Message: AI Alert: {village} me flood risk. "
+                "Kripya uchai wali jagah par jayen."
             )
 
     elif prediction == 1:
@@ -144,7 +123,6 @@ if st.button("🔍 Abhi Check Karo - Predict Flood Risk"):
             "flood ka high risk detect nahi hua."
         )
 
-# 6. FOOTER
 st.divider()
 
 st.write(
@@ -159,4 +137,3 @@ st.caption(
     "Real system me IMD API + IoT River Sensor + "
     "WhatsApp/IVR API integrate ki ja sakti hai."
 )
-```
